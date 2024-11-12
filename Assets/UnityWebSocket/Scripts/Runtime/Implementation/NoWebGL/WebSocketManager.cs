@@ -1,4 +1,13 @@
-﻿#if !NET_LEGACY && (UNITY_EDITOR || !UNITY_WEBGL)
+﻿#if NET_LEGACY
+#error .NET Runtime is Legacy.
+/* https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket
+System.Net.WebSockets.ClientWebSocket Applies to Product	Versions
+.NET	Core 1.0, Core 1.1, Core 2.0, Core 2.1, Core 2.2, Core 3.0, Core 3.1, 5, 6, 7, 8, 9
+.NET Framework	4.5, 4.5.1, 4.5.2, 4.6, 4.6.1, 4.6.2, 4.7, 4.7.1, 4.7.2, 4.8, 4.8.1
+.NET Standard	2.0, 2.1
+*/
+#elif !(UNITY_WEBGL && !UNITY_EDITOR) && !FORCE_WEBGL_IMPL_ENABLE
+
 using System.Collections.Generic;
 using UnityEngine;
 

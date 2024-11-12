@@ -95,6 +95,23 @@ namespace UnityWebSocket
         void SendAsync(string text);
 
         /// <summary>
+        /// Sends the specified data using the WebSocket connection.
+        /// </summary>
+        /// <param name="buffer">
+        /// A <see cref="PooledBuffer"/> that represents the data to send.
+        /// </param>
+        /// <exception cref="InvalidOperationException">
+        /// The current state of the connection is not Open.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="text"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="text"/> could not be UTF-8 encoded.
+        /// </exception>
+        void SendAsync(PooledBuffer buffer);
+
+        /// <summary>
         /// get the address which to connect.
         /// </summary>
         string Address { get; }
@@ -138,6 +155,6 @@ namespace UnityWebSocket
         /// <summary>
         /// Occurs when the <see cref="IWebSocket"/> receives a message.
         /// </summary>
-        event EventHandler<MessageEventArgs> OnMessage;
+        event EventHandler<PooledBuffer> OnMessage;
     }
 }

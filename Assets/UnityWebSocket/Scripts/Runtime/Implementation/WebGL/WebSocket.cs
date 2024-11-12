@@ -1,4 +1,12 @@
-﻿#if !UNITY_EDITOR && UNITY_WEBGL
+﻿#if NET_LEGACY
+#error .NET Runtime is Legacy.
+/* https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket
+System.Net.WebSockets.ClientWebSocket Applies to Product	Versions
+.NET	Core 1.0, Core 1.1, Core 2.0, Core 2.1, Core 2.2, Core 3.0, Core 3.1, 5, 6, 7, 8, 9
+.NET Framework	4.5, 4.5.1, 4.5.2, 4.6, 4.6.1, 4.6.2, 4.7, 4.7.1, 4.7.2, 4.8, 4.8.1
+.NET Standard	2.0, 2.1
+*/
+#elif (UNITY_WEBGL && !UNITY_EDITOR ) || FORCE_WEBGL_IMPL_ENABLE
 using System;
 
 namespace UnityWebSocket
@@ -12,7 +20,7 @@ namespace UnityWebSocket
         public event EventHandler<OpenEventArgs> OnOpen;
         public event EventHandler<CloseEventArgs> OnClose;
         public event EventHandler<ErrorEventArgs> OnError;
-        public event EventHandler<MessageEventArgs> OnMessage;
+        public event EventHandler<PooledBuffer> OnMessage;
 
         internal int instanceId = 0;
 
@@ -89,22 +97,32 @@ namespace UnityWebSocket
             if (code < 0) HandleOnError(GetErrorMessageFromCode(code));
         }
 
+        public void SendAsync(PooledBuffer buffer)
+        {
+            Log($"Send, type: {buffer.Opcode}, size: {buffer.Length}");
+            int code;
+            if (buffer.Opcode == Opcode.Text)
+            {
+                code = WebSocketManager.WebSocketSendStr(instanceId, buffer.Data);
+            }
+            else
+            {
+                code = WebSocketManager.WebSocketSend(instanceId, buffer.Bytes, buffer.Length);
+            }
+            if (code < 0) HandleOnError(GetErrorMessageFromCode(code));
+            buffer.Dispose();
+        }
+
         internal void HandleOnOpen()
         {
             Log("OnOpen");
             OnOpen?.Invoke(this, new OpenEventArgs());
         }
 
-        internal void HandleOnMessage(byte[] rawData)
+        internal void HandleOnMessage(PooledBuffer buffer)
         {
-            Log($"OnMessage, type: {Opcode.Binary}, size: {rawData.Length}");
-            OnMessage?.Invoke(this, new MessageEventArgs(Opcode.Binary, rawData));
-        }
-
-        internal void HandleOnMessageStr(string data)
-        {
-            Log($"OnMessage, type: {Opcode.Text}, size: {data.Length}");
-            OnMessage?.Invoke(this, new MessageEventArgs(Opcode.Text, data));
+            Log($"OnMessage, type: {buffer.Opcode}, size: {buffer.Length}");
+            OnMessage?.Invoke(this, buffer);
         }
 
         internal void HandleOnClose(ushort code, string reason)

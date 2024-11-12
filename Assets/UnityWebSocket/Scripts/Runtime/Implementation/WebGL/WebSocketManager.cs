@@ -1,4 +1,12 @@
-﻿#if !UNITY_EDITOR && UNITY_WEBGL
+﻿#if NET_LEGACY
+#error .NET Runtime is Legacy.
+/* https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket
+System.Net.WebSockets.ClientWebSocket Applies to Product	Versions
+.NET	Core 1.0, Core 1.1, Core 2.0, Core 2.1, Core 2.2, Core 3.0, Core 3.1, 5, 6, 7, 8, 9
+.NET Framework	4.5, 4.5.1, 4.5.2, 4.6, 4.6.1, 4.6.2, 4.7, 4.7.1, 4.7.2, 4.8, 4.8.1
+.NET Standard	2.0, 2.1
+*/
+#elif (UNITY_WEBGL && !UNITY_EDITOR ) || FORCE_WEBGL_IMPL_ENABLE
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -17,7 +25,7 @@ namespace UnityWebSocket
         /* Delegates */
         public delegate void OnOpenCallback(int instanceId);
         public delegate void OnMessageCallback(int instanceId, IntPtr msgPtr, int msgSize);
-        public delegate void OnMessageStrCallback(int instanceId, IntPtr msgStrPtr);
+        public delegate void OnMessageStrCallback(int instanceId, IntPtr msgPtr, int msgSize);
         public delegate void OnErrorCallback(int instanceId, IntPtr errorPtr);
         public delegate void OnCloseCallback(int instanceId, int closeCode, IntPtr reasonPtr);
 
@@ -91,19 +99,20 @@ namespace UnityWebSocket
         {
             if (sockets.TryGetValue(instanceId, out var socket))
             {
-                var bytes = new byte[msgSize];
-                Marshal.Copy(msgPtr, bytes, 0, msgSize);
-                socket.HandleOnMessage(bytes);
+                var buffer = PooledBuffer.Create(Opcode.Binary);
+                buffer.Write(msgPtr, 0, msgSize);
+                socket.HandleOnMessage(buffer);
             }
         }
 
         [MonoPInvokeCallback(typeof(OnMessageStrCallback))]
-        public static void DelegateOnMessageStrEvent(int instanceId, IntPtr msgStrPtr)
+        public static void DelegateOnMessageStrEvent(int instanceId, IntPtr msgPtr, int msgSize)
         {
             if (sockets.TryGetValue(instanceId, out var socket))
             {
-                string msgStr = Marshal.PtrToStringAuto(msgStrPtr);
-                socket.HandleOnMessageStr(msgStr);
+                var buffer = PooledBuffer.Create(Opcode.Text);
+                buffer.Write(msgPtr, 0, msgSize);
+                socket.HandleOnMessage(buffer);
             }
         }
 

@@ -9,7 +9,7 @@ namespace UnityWebSocket.Editor
     internal class SettingsWindow : EditorWindow
     {
         static SettingsWindow window = null;
-        [MenuItem("Tools/UnityWebSocket", priority = 100)]
+        [MenuItem("Tools/UnityWebSocket/Settings", priority = 100)]
         internal static void Open()
         {
             if (window != null)

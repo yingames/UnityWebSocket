@@ -151,7 +151,8 @@ var WebSocketLibrary =
             instance.ws = new WebSocket(instance.url, instance.subProtocols);
         else
             instance.ws = new WebSocket(instance.url);
-
+        // Set binaryType to arraybuffer to prevent blob message
+        instance.ws.binaryType = 'arraybuffer';
         instance.ws.onopen = function()
         {
             Module.dynCall_vi(webSocketManager.onOpen, instanceId);
@@ -180,32 +181,12 @@ var WebSocketLibrary =
                 stringToUTF8(ev.data, buffer, length);
                 try
                 {
-                    Module.dynCall_vii(webSocketManager.onMessageStr, instanceId, buffer);
+                    Module.dynCall_viii(webSocketManager.onMessageStr, instanceId, buffer, length);
                 }
                 finally
                 {
                     _free(buffer);
                 }
-            }
-            else if (typeof Blob !== 'undefined' && ev.data instanceof Blob)
-            {
-                var reader = new FileReader();
-                reader.onload = function()
-                {
-                    var array = new Uint8Array(reader.result);
-                    var buffer = _malloc(array.length);
-                    writeArrayToMemory(array, buffer);
-                    try
-                    {
-                        Module.dynCall_viii(webSocketManager.onMessage, instanceId, buffer, array.length);
-                    }
-                    finally
-                    {
-                        reader = null;
-                        _free(buffer);
-                    }
-                };
-                reader.readAsArrayBuffer(ev.data);
             }
             else
             {

@@ -151,11 +151,11 @@ namespace UnityWebSocket.Demo
             AddLog(string.Format("Connected: {0}", address));
         }
 
-        private void Socket_OnMessage(object sender, MessageEventArgs e)
+        private void Socket_OnMessage(object sender, PooledBuffer e)
         {
             if (e.IsBinary)
             {
-                AddLog(string.Format("Receive Bytes ({1}): {0}", e.Data, e.RawData.Length));
+                AddLog(string.Format("Receive Bytes ({1}): {0}", e.Data, e.Length));
             }
             else if (e.IsText)
             {
